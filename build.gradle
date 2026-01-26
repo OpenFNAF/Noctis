@@ -1,0 +1,102 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+    mavenLocal()
+    google()
+    maven { url = 'https://central.sonatype.com/repository/maven-snapshots/' }
+  }
+}
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+group = "net.openfnaf"
+version = "$projectVersion"
+ext.appName = 'Noctis'
+java.sourceCompatibility = 17
+
+java {
+  withSourcesJar()
+  withJavadocJar()
+}
+
+// This allows you to "Build and run using IntelliJ IDEA", an option in IDEA's Settings.
+idea {
+  module {
+    outputDir = file('build/classes/java/main')
+    testOutputDir = file('build/classes/java/test')
+  }
+}
+
+repositories {
+  mavenCentral()
+  mavenLocal()
+  maven { url = 'https://central.sonatype.com/repository/maven-snapshots/' }
+  maven { url = 'https://jitpack.io' }
+}
+
+// From https://lyze.dev/2021/04/29/libGDX-Internal-Assets-List/
+// The article can be helpful when using assets.txt in your project.
+tasks.register('generateAssetList') {
+  inputs.dir("${project.rootDir}/assets/")
+  // projectFolder/assets
+  File assetsFolder = new File("${project.rootDir}/assets/")
+  // projectFolder/assets/assets.txt
+  File assetsFile = new File(assetsFolder, "assets.txt")
+  // delete that file in case we've already created it
+  assetsFile.delete()
+
+  // iterate through all files inside that folder
+  // convert it to a relative path
+  // and append it to the file assets.txt
+  fileTree(assetsFolder).collect { assetsFolder.relativePath(it) }.sort().each {
+    assetsFile.append(it + "\n")
+  }
+}
+processResources.dependsOn 'generateAssetList'
+
+compileJava {
+  options.incremental = true
+}
+
+tasks.named('jar') {
+  archiveBaseName = 'noctis-core'
+}
+
+dependencies {
+  api "com.badlogicgames.ashley:ashley:$ashleyVersion"
+  api "com.badlogicgames.box2dlights:box2dlights:$box2dlightsVersion"
+  api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
+  api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
+  api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+  api "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
+  api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+  api "com.badlogicgames.gdx:gdx:$gdxVersion"
+  api "com.crashinvaders.basisu:basisu-gdx:$gdxBasisUniversalVersion"
+  api "com.crashinvaders.basisu:basisu-wrapper:$gdxBasisUniversalVersion"
+  api "com.github.raeleus:game-jolt-api:$gameJoltApiVersion"
+  api "com.github.tommyettinger:anim8-gdx:$anim8Version"
+  api "com.github.tommyettinger:colorful:$colorfulVersion"
+  api "com.github.tommyettinger:cringe:$cringeVersion"
+  api "com.kotcrab.vis:vis-ui:$visUiVersion"
+  api "de.golfgl.gdxcontrollerutils:gdx-controllerutils-mapping:$controllerMappingVersion"
+  api "net.onedaybeard.artemis:artemis-odb:$artemisOdbVersion"
+
+  if(enableGraalNative == 'true') {
+    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
+  }
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      artifactId = 'noctis-core'
+    }
+  }
+}
+
+eclipse.project.name = 'Noctis'
