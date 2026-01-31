@@ -2,6 +2,15 @@ package net.openfnaf.framework.ai;
 
 import com.badlogic.gdx.utils.Array;
 
+/**
+ * The BaseAnimatronic class is an abstract representation of an animatronic entity in the game
+ * framework. It serves as a base class for specific animatronic implementations by providing
+ * core functionality and properties.
+ * <p>
+ * This class implements the Animatronic interface and encapsulates details such as identity,
+ * AI configuration, movement patterns, attack timing and interactions with doors. It's intended
+ * to be used as part of the animatronic system to simulate behavior and interactions within the game(s).
+ */
 public class BaseAnimatronic implements Animatronic {
     private final String id;
     private String name;

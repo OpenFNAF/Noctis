@@ -3,32 +3,20 @@ package net.openfnaf.framework.power;
 import net.openfnaf.framework.game.GameState;
 
 public class PowerSystem {
+    private static final int MIN_USAGE = 1;
+    private static final int MAX_USAGE = 4;
+
     private float baseDrain = 0.08f;
-    private float doorDrain = 0.14f;
-    private float lightDrain = 0.08f;
-    private float cameraDrain = 0.12f;
     private float drainScale = 10f;
+    private float[] usageMultipliers = {1f, 1.5f, 2f, 3f};
 
     public void update(float delta, GameState state) {
         if (state.isPowerOut()) {
             return;
         }
-        float drainRate = baseDrain;
-        if (state.isLeftDoorClosed()) {
-            drainRate += doorDrain;
-        }
-        if (state.isRightDoorClosed()) {
-            drainRate += doorDrain;
-        }
-        if (state.isLeftLightOn()) {
-            drainRate += lightDrain;
-        }
-        if (state.isRightLightOn()) {
-            drainRate += lightDrain;
-        }
-        if (state.isCamerasUp()) {
-            drainRate += cameraDrain;
-        }
+        int usage = computeUsage(state);
+        float multiplier = usageMultipliers[usage - 1];
+        float drainRate = baseDrain * multiplier;
         float nextPower = Math.max(0f, state.getPower() - drainRate * delta * drainScale);
         state.setPower(nextPower);
         if (nextPower <= 0f) {
@@ -41,23 +29,32 @@ public class PowerSystem {
         }
     }
 
+    public int computeUsage(GameState state) {
+        int usage = MIN_USAGE;
+        if (state.isLeftDoorClosed() || state.isRightDoorClosed()) {
+            usage++;
+        }
+        if (state.isLeftLightOn() || state.isRightLightOn()) {
+            usage++;
+        }
+        if (state.isCamerasUp()) {
+            usage++;
+        }
+        return Math.max(MIN_USAGE, Math.min(usage, MAX_USAGE));
+    }
+
     public void setBaseDrain(float baseDrain) {
         this.baseDrain = baseDrain;
     }
 
-    public void setDoorDrain(float doorDrain) {
-        this.doorDrain = doorDrain;
-    }
-
-    public void setLightDrain(float lightDrain) {
-        this.lightDrain = lightDrain;
-    }
-
-    public void setCameraDrain(float cameraDrain) {
-        this.cameraDrain = cameraDrain;
-    }
-
     public void setDrainScale(float drainScale) {
         this.drainScale = drainScale;
+    }
+
+    public void setUsageMultipliers(float[] usageMultipliers) {
+        if (usageMultipliers == null || usageMultipliers.length < MAX_USAGE) {
+            throw new IllegalArgumentException("usageMultipliers must have at least " + MAX_USAGE + " entries.");
+        }
+        this.usageMultipliers = usageMultipliers;
     }
 }

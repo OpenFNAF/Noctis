@@ -6,14 +6,22 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import net.openfnaf.framework.utils.message.MessageManager;
 
+/**
+ * This is an abstract base class for the game framework, extending the functionality of the {@link Game} class.
+ * Implementations of this class are expected to define configuration and screen registration logic.
+ * This class is primarily responsible for managing core gameplay components such as configuration,
+ * assets, rendering, and screen management.
+ */
 public abstract class NoctisGame extends Game {
     private FrameworkConfig config;
     private AssetManager assets;
     private SpriteBatch batch;
     private OrthographicCamera camera;
     private Viewport viewport;
-    private ScreenManager screens;
+    private ScreenManager screenManager;
+    private MessageManager messages;
 
     @Override
     public final void create() {
@@ -22,9 +30,10 @@ public abstract class NoctisGame extends Game {
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         viewport = new FitViewport(config.getVirtualWidth(), config.getVirtualHeight(), camera);
-        screens = new ScreenManager(this);
-        registerScreens(screens);
-        screens.show(config.getStartScreenId());
+        screenManager = new ScreenManager(this);
+        registerScreens(screenManager);
+        messages = new MessageManager(this);
+        screenManager.show(config.getStartScreenId());
     }
 
     @Override
@@ -36,8 +45,8 @@ public abstract class NoctisGame extends Game {
     @Override
     public void dispose() {
         super.dispose();
-        if (screens != null) {
-            screens.disposeAll();
+        if (screenManager != null) {
+            screenManager.disposeAll();
         }
         if (assets != null) {
             assets.dispose();
@@ -49,7 +58,7 @@ public abstract class NoctisGame extends Game {
 
     protected abstract FrameworkConfig createConfig();
 
-    protected abstract void registerScreens(ScreenManager screens);
+    protected abstract void registerScreens(ScreenManager screenManager);
 
     public FrameworkConfig getConfig() {
         return config;
@@ -71,7 +80,11 @@ public abstract class NoctisGame extends Game {
         return viewport;
     }
 
-    public ScreenManager getScreens() {
-        return screens;
+    public ScreenManager getScreenManager() {
+        return screenManager;
+    }
+
+    public MessageManager getMessageManager() {
+        return messages;
     }
 }
